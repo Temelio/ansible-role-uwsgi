@@ -8,3 +8,13 @@
     cache_valid_time: 3600
   with_items: "{{ uwsgi_packages }}"
   notify: 'HANDLER | Restart uwsgi'
+  when: 'not uwsgi_install_emperor'
+
+- name: 'Install uwsgi emperor packages'
+  apt:
+    name: "{{ item.name }}"
+    state: "{{ item.state | default('present') }}"
+    update_cache: True
+    cache_valid_time: 3600
+  with_items: "{{ uwsgi_emperor_packages }}"
+  when: 'uwsgi_install_emperor'

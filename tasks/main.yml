@@ -3,14 +3,14 @@
 # Main tasks file for uwsgi role
 
 - name: 'INIT | Manage variables to use for our target'
-  include: "{{ role_path }}/tasks/manage_variables.yml"
+  include_tasks: "{{ role_path }}/tasks/manage_variables.yml"
   tags:
     - 'role::uwsgi'
     - 'role::uwsgi::init'
 
 
 - name: 'INSTALL | Manage installation tasks for OS family'
-  include: "{{ role_path }}/tasks/install/{{ ansible_os_family | lower }}_family.yml"
+  include_tasks: "{{ role_path }}/tasks/install/{{ ansible_os_family | lower }}_family.yml"
   become: True
   when: "uwsgi_install_mode == 'package'"
   tags:
@@ -19,21 +19,8 @@
 
 
 - name: 'CONFIG | Manage configuration tasks'
-  include: "{{ role_path }}/tasks/configure.yml"
+  include_tasks: "{{ role_path }}/tasks/configure.yml"
   become: True
   tags:
     - 'role::uwsgi'
     - 'role::uwsgi::config'
-
-
-- name: 'CHECK | Get enabled applications count'
-  become: True
-  find:
-    paths: "{{ uwsgi_configuration_enabled_path }}"
-    patterns: 'README'
-  register: 'uwsgi_check_app_enabled'
-  notify: 'HANDLER | Stop uwsgi'
-  tags:
-    - 'role::uwsgi'
-    - 'role::uwsgi::config'
-    - 'role::uwsgi::install'

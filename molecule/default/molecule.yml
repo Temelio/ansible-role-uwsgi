@@ -7,20 +7,27 @@ driver:
 lint:
   name: 'yamllint'
 platforms:
-  - name: "uwsgi-docker-jessie"
+  - name: "ansible-role-uwsgi-docker-jessie"
     image: 'minimum2scp/systemd-jessie:latest'
     command: '/sbin/init'
     cap_add:
       - 'SYS_PTRACE'
     privileged: True
-  - name: "uwsgi-docker-xenial"
+  - name: "ansible-role-uwsgi-docker-stretch"
+    image: 'minimum2scp/systemd-stretch:latest'
+    command: '/sbin/init'
+    cap_add:
+      - 'SYS_PTRACE'
+    privileged: True
+  - name: "ansible-role-uwsgi-docker-xenial"
     image: 'solita/ubuntu-systemd:16.04'
     command: '/sbin/init'
     cap_add:
       - 'SYS_PTRACE'
     privileged: True
-  - name: "uwsgi-docker-trusty"
-    image: 'ubuntu:trusty'
+  - name: "ansible-role-uwsgi-docker-bionic"
+    image: 'solita/ubuntu-systemd:18.04'
+    command: '/sbin/init'
     cap_add:
       - 'SYS_PTRACE'
     privileged: True
@@ -30,20 +37,7 @@ provisioner:
     name: 'ansible-lint'
   inventory:
     group_vars:
-      all:
-        uwsgi_test_app:
-          dest: '/home/foobar/app/foo.py'
-        uwsgi_apps:
-          - name: 'foo'
-            enabled: True
-            settings:
-              uwsgi:
-                chdir: '/home/foobar/app'
-                gid: 'www-data'
-                plugins: 'python'
-                uid: 'foobar'
-                virtualenv: '/home/foobar/venv'
-                wsgi-file: '/home/foobar/app/foo.py'
+      all: {}
     host_vars: {}
 scenario:
   name: 'default'

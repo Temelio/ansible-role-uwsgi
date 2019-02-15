@@ -8,21 +8,37 @@ _uwsgi_packages:
   - name: 'uwsgi-plugin-python'
   - name: 'uwsgi-plugin-python3'
 
+_uwsgi_emperor_packages:
+  - name: 'uwsgi-emperor'
+  - name: 'uwsgi-plugin-python3'
+
+# Configuration init.d/systemd
+_systemd_files_path: '/etc/systemd/system'
+
 # Configuration management
-_uwsgi_configuration_available_path: '/etc/uwsgi/apps-available'
-_uwsgi_configuration_enabled_path: '/etc/uwsgi/apps-enabled'
-_uwsgi_configuration_log_path: '/var/log/uwsgi'
-_uwsgi_configuration_run_path: '/var/run/uwsgi'
+_uwsgi_emperor_vassals_config_path: '/etc/uwsgi-emperor/vassals'
+_uwsgi_config_available_path: '/etc/uwsgi/apps-available'
+_uwsgi_config_enabled_path: '/etc/uwsgi/apps-enabled'
+_uwsgi_config_log_path: '/var/log/uwsgi'
 _uwsgi_apps_defaults:
-  uwsgi:
-    autoload: true
-    master: true
-    workers: 2
-    no-orphans: true
-    pidfile: "{{ uwsgi_configuration_run_path ~ '/%(deb-confnamespace)/%(deb-confname)/pid' }}"
-    socket: "{{ uwsgi_configuration_run_path ~ '/%(deb-confnamespace)/%(deb-confname)/socket' }}"
-    logto: "{{ uwsgi_configuration_log_path ~ '/%(deb-confnamespace)/%(debconfname).log' }}"
-    chmod-socket: 660
-    log-date: true
-    uid: www-data
-    gid: www-data
+  - name: 'default'
+    src: "{{ role_path }}/templates/app.yaml.j2"
+    dest_available: "{{ _uwsgi_config_available_path }}"
+    dest_enabled: "{{ _uwsgi_config_enabled_path }}"
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+    enabled: True
+    config:
+      uwsgi:
+        autoload: true
+        master: true
+        workers: 2
+        no-orphans: true
+        pidfile: "/run/uwsgi/%(deb-confnamespace)/%(deb-confname)/pid"
+        socket: "/run/uwsgi/%(deb-confnamespace)/%(deb-confname)/socket"
+        logto: "{{ _uwsgi_config_log_path }}/%n.log"
+        chmod-socket: 660
+        log-date: true
+        uid: "{{ uwsgi_user }}"
+        gid: "{{ uwsgi_group }}"

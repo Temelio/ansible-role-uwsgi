@@ -3,7 +3,7 @@
 # Role tests
 
 - name: 'Converge | Prerequisites tasks'
-  hosts: 'uwsgi-docker-xenial'
+  hosts: 'all'
   gather_facts: False
   tasks:
     - name: 'PREREQUISITES | APT | Do an apt-get update'
@@ -20,69 +20,15 @@
   hosts: 'all'
   pre_tasks:
     - block:
-        - name: 'Create test application user'
-          user:
-            name: 'foobar'
-          changed_when: False
         - name: 'Install test system dependencies'
           apt:
             name: "{{ item }}"
             state: 'present'
           with_items:
-            - 'curl'
             - 'net-tools'
-            - 'nginx'
             - 'python-dev'
             - 'python-pip'
             - 'sudo'
           changed_when: False
-        - name: 'Install virtualenv'
-          pip:
-            name: 'virtualenv'
-          changed_when: False
-        - name: 'Create test application folders'
-          become: True
-          become_user: 'foobar'
-          file:
-            dest: "{{ item }}"
-            state: 'directory'
-          with_items:
-            - '/home/foobar/app'
-            - '/home/foobar/venv'
-          changed_when: False
-        - name: 'Copy test application files'
-          become: True
-          become_user: 'foobar'
-          copy:
-            src: "{{ item }}"
-            dest: '/home/foobar/app'
-          with_items:
-            - 'files/requirements.txt'
-            - 'files/foo.py'
-          changed_when: False
-        - name: 'Install test python dependencies'
-          become: True
-          become_user: 'foobar'
-          pip:
-            requirements: '/home/foobar/app/requirements.txt'
-            virtualenv: '/home/foobar/venv'
-          changed_when: False
-        - name: 'Copy Nginx configuration file'
-          copy:
-            src: 'nginx.conf'
-            dest: '/etc/nginx/sites-enabled/foo.conf'
-          changed_when: False
-        - name: 'Remove Nginx default configuration'
-          file:
-            path: '/etc/nginx/sites-enabled/default'
-            state: 'absent'
-          changed_when: False
-        - name: 'Restart Nginx'
-          service:
-            name: 'nginx'
-            state: 'restarted'
-          changed_when: False
-      become: True
-      when: "ansible_os_family | lower == 'debian'"
   roles:
     - role: "ansible-role-uwsgi"

@@ -8,20 +8,23 @@
     name: "{{ uwsgi_service_name }}"
     state: 'restarted'
   when:
-    - 'uwsgi_check_app_enabled.matched < uwsgi_check_app_enabled.examined'
-    - 'uwsgi_restart_handler_enabled | bool'
+    - 'uwsgi_restart_handler_enabled'
+    - 'not uwsgi_install_emperor'
   tags:
     - 'role::uwsgi'
     - 'role::uwsgi::config'
     - 'role::uwsgi::install'
 
-
-- name: 'HANDLER | Stop uwsgi'
+- name: 'HANDLER | Start uwsgi emperor'
   become: True
   service:
-    name: "{{ uwsgi_service_name }}"
-    state: 'stopped'
-  when: 'uwsgi_check_app_enabled.matched == uwsgi_check_app_enabled.examined'
+    name: "{{ item.service_name }}"
+    state: "{{ item.state }}"
+    enabled: "{{ item.enabled }}"
+  with_items: "{{ uwsgi_emperor }}"
+  when:
+    - 'uwsgi_restart_handler_enabled'
+    - 'uwsgi_install_emperor'
   tags:
     - 'role::uwsgi'
     - 'role::uwsgi::config'

@@ -2,22 +2,101 @@
 
 # All tasks about uwsgi configuration
 
-- name: 'CONFIG | Create configuration files'
-  template:
-    src: "{{ role_path }}/templates/app.yaml.j2"
-    dest: "{{ uwsgi_configuration_available_path }}/{{ item.name }}.yaml"
-    owner: "{{ uwsgi_configuration_owner }}"
-    group: "{{ uwsgi_configuration_group }}"
-    mode: "{{ uwsgi_configuration_mode }}"
-  notify: 'HANDLER | Restart uwsgi'
-  with_items: "{{ uwsgi_apps }}"
+- name: 'CONFIG | Ensure log directories exist 4 uswgi'
+  file:
+    path: "{{ uwsgi_config_log_path }}"
+    state: 'directory'
+    owner: "{{ uwsgi_user }}"
+    group: "{{ uwsgi_group }}"
+    mode: '2770'
+  when: 'not uwsgi_install_emperor'
 
+- name: 'CONFIG | Ensure log directories exist 4 uwsgi-emperor'
+  file:
+    path: "{{ uwsgi_config_log_path }}"
+    state: 'directory'
+    owner: "{{ uwsgi_emperor_user }}"
+    group: "{{ uwsgi_emperor_group }}"
+    mode: '2770'
+  when: 'uwsgi_install_emperor'
+
+- name: 'CONFIG | Create app configuration files'
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest_available }}/{{ item.name }}.yml"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  notify: 'HANDLER | Restart uwsgi'
+  with_items: "{{ uwsgi_apps_defaults }}"
+  when: 'not uwsgi_install_emperor'
+
+- name: 'CONFIG | create systemd uwsgi-emperor'
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  with_items: "{{ uwsgi_systemd }}"
+  register: 'uwsgi_systemd_config_updated'
+  when:
+    - 'uwsgi_install_emperor'
+    - 'uwsgi_systemd'
+
+- name: 'CONFIG | delete init.d uwsgi-emperor file'
+  file:
+    path: '/etc/init.d/uwsgi-emperor'
+    state: 'absent'
+  register: 'delete_initd_uwsgi_emperor_file'
+  when:
+    - 'uwsgi_install_emperor'
+    - 'uwsgi_is_systemd_managed'
+
+
+- name: 'CONFIG | disable init.d uwsgi-emperor'
+  service:
+    name: "{{ item.name }}"
+    enabled: "{{ item.enabled }}"
+  with_items: "{{ init_d_disable }}"
+  when:
+    - 'uwsgi_install_emperor'
+    - 'uwsgi_is_systemd_managed'
+    - 'delete_initd_uwsgi_emperor_file.changed'
+
+- name: 'HANDLER | force systemd to reread configs'
+  systemd:
+    daemon_reload: True
+  when:
+    - 'uwsgi_is_systemd_managed'
+    - 'uwsgi_systemd_config_updated.changed'
+
+- name: 'CONFIG | Create emperor configuration files'
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  notify: 'HANDLER | Start uwsgi emperor'
+  with_items: "{{ uwsgi_emperor }}"
+  when: 'uwsgi_install_emperor'
+
+- name: 'CONFIG | Create app configuration files 4 emperor'
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ uwsgi_emperor_vassals_config_path }}/{{ item.name }}.yml"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  with_items: "{{ uwsgi_apps_defaults }}"
+  when: 'uwsgi_install_emperor'
 
 - name: 'CONFIG | Activate needed applications'
   file:
-    src: "{{ uwsgi_configuration_available_path }}/{{ item.name }}.yaml"
-    dest: "{{ uwsgi_configuration_enabled_path }}/{{ item.name }}.yaml"
+    src: "{{ item.dest_available }}/{{ item.name }}.yml"
+    dest: "{{ item.dest_enabled }}/{{ item.name }}.yml"
     state: 'link'
   notify: 'HANDLER | Restart uwsgi'
-  when: "item.enabled | default(False)"
-  with_items: "{{ uwsgi_apps }}"
+  with_items: "{{ uwsgi_apps_defaults }}"
+  when: 'not uwsgi_install_emperor'

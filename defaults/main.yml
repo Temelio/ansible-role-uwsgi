@@ -4,19 +4,69 @@
 
 # Installation vars
 uwsgi_install_mode: 'package'
+uwsgi_install_emperor: False
 uwsgi_packages: "{{ _uwsgi_packages }}"
+uwsgi_emperor_packages: "{{ _uwsgi_emperor_packages }}"
 uwsgi_service_name: 'uwsgi'
+uwsgi_emperor_service_name: 'uwsgi-emperor'
+uwsgi_is_systemd_managed: False
 
 # Configuration vars
-uwsgi_configuration_available_path: "{{ _uwsgi_configuration_available_path }}"
-uwsgi_configuration_enabled_path: "{{ _uwsgi_configuration_enabled_path }}"
-uwsgi_configuration_log_path: "{{ _uwsgi_configuration_log_path }}"
-uwsgi_configuration_run_path: "{{ _uwsgi_configuration_run_path }}"
-uwsgi_configuration_owner: 'root'
-uwsgi_configuration_group: 'root'
-uwsgi_configuration_mode: '0640'
-uwsgi_apps: []
+uwsgi_config_available_path: "{{ _uwsgi_config_available_path }}"
+uwsgi_config_enabled_path: "{{ _uwsgi_config_enabled_path }}"
+uwsgi_user: 'www-data'
+uwsgi_group: 'root'
+uwsgi_config_log_path: "{{ _uwsgi_config_log_path }}"
+uwsgi_config_run_path: "{{ _uwsgi_config_run_path }}"
 uwsgi_apps_defaults: "{{ _uwsgi_apps_defaults }}"
+uwsgi_emperor_vassals_config_path: "{{ _uwsgi_emperor_vassals_config_path }}"
+uwsgi_emperor_vassals_path: '/etc/uwsgi-emperor/vassals'
+uwsgi_emperor_user: 'nobody'
+uwsgi_emperor_group: 'users'
+uwsgi_emperor:
+  - service_name: 'uwsgi-emperor'
+    src: "{{ role_path }}/templates/emperor.ini.j2"
+    dest: '/etc/uwsgi-emperor/emperor.ini'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+    state: 'started'
+    enabled: True
+    config:
+      uwsgi:
+        autoload: True
+        master: True
+        workers: 2
+        no-orphans: True
+        log-date: True
+        uid: "{{ uwsgi_emperor_user }}"
+        gid: "{{ uwsgi_emperor_group }}"
+        emperor: "{{ uwsgi_emperor_vassals_path }}"
 
 # Handler management
 uwsgi_restart_handler_enabled: True
+
+# systemd management
+init_d_disable:
+  - name: "{{ uwsgi_emperor[0].service_name }}"
+    enabled: False
+uwsgi_systemd:
+  - src: "{{ role_path }}/templates/systemd.service.j2"
+    dest: "{{ _systemd_files_path }}/{{ uwsgi_emperor[0].service_name }}.service"
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+    config:
+      Unit:
+        Description: 'uWSGI Emperor'
+        After: 'syslog.target'
+      Service:
+        ExecStart: '/usr/bin/uwsgi --ini /etc/uwsgi-emperor/emperor.ini'
+        RuntimeDirectory: 'uwsgi'
+        Restart: 'always'
+        KillSignal: 'SIGQUIT'
+        Type: 'notify'
+        StandardError: 'syslog'
+        NotifyAccess: 'all'
+      Install:
+        WantedBy: 'multi-user.target'

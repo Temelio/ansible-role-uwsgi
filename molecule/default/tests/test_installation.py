@@ -2,13 +2,15 @@
 Role tests
 """
 
+import os
 import pytest
 from testinfra.utils.ansible_runner import AnsibleRunner
 
-testinfra_hosts = AnsibleRunner('.molecule/ansible_inventory').get_hosts('all')
+testinfra_hosts = AnsibleRunner(
+    os.environ['MOLECULE_INVENTORY_FILE']).get_hosts('all')
 
 
-def test_packages(host):
+def test_hosts_file(host):
     """
     Check if packages are installed
     """
@@ -30,14 +32,14 @@ def test_configuration_file(host):
     if host.system_info.distribution not in ('debian', 'ubuntu'):
         pytest.skip('Not apply to %s' % host.system_info.distribution)
 
-    config_file = host.file('/etc/uwsgi/apps-available/foo.yaml')
+    config_file = host.file('/etc/uwsgi/apps-available/default.yml')
     assert config_file.exists
     assert config_file.is_file
 
-    config_link = host.file('/etc/uwsgi/apps-enabled/foo.yaml')
+    config_link = host.file('/etc/uwsgi/apps-enabled/default.yml')
     assert config_link.exists
     assert config_link.is_symlink
-    assert config_link.linked_to == '/etc/uwsgi/apps-available/foo.yaml'
+    assert config_link.linked_to == '/etc/uwsgi/apps-available/default.yml'
 
 
 def test_run_files(host):
@@ -48,35 +50,14 @@ def test_run_files(host):
     if host.system_info.distribution not in ('debian', 'ubuntu'):
         pytest.skip('Not apply to %s' % host.system_info.distribution)
 
-    pid_file = host.file('/var/run/uwsgi/app/foo/pid')
+    pid_file = host.file('/var/run/uwsgi/app/default/pid')
     assert pid_file.exists
     assert pid_file.is_file
-    assert pid_file.user == 'root'
-    assert pid_file.group == 'root'
 
-    socket_file = host.file('/var/run/uwsgi/app/foo/socket')
+    socket_file = host.file('/var/run/uwsgi/app/default/socket')
     assert socket_file.exists
     assert socket_file.is_socket
-    assert socket_file.user == 'foobar'
-    assert socket_file.group == 'www-data'
     assert socket_file.mode == 0o660
-
-
-def test_processes(host):
-    """
-    Check processes
-    """
-
-    assert len(host.process.filter(user='foobar')) == 3
-
-
-def test_socket(host):
-    """
-    Test socket properties
-    """
-
-    socket = host.socket("unix:///var/run/uwsgi/app/foo/socket")
-    assert socket.is_listening
 
 
 def test_service(host):
@@ -89,19 +70,4 @@ def test_service(host):
         service = host.service('uwsgi')
 
     assert service.is_enabled
-
-    # Systemctl not available with Docker images
-    if 'docker' != host.backend.NAME:
-        assert service.is_running
-
-
-def test_app(host):
-    """
-    Test app is running
-    """
-
-    app_test = host.run('curl http://127.0.0.1')
-    expected_output = "<body><h1 style='color:blue'>Hello World!</h1></body>"
-
-    assert app_test.rc == 0
-    assert expected_output in app_test.stdout
+    assert service.is_running

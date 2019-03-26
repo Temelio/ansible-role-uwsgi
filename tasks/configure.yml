@@ -2,6 +2,20 @@
 
 # All tasks about uwsgi configuration
 
+- name: 'CONFIG | Ensure uwsgi group exists'
+  group:
+    name: "{{ uwsgi_group }}"
+    state: present
+  when: uwsgi_ensure_user_group_exists
+
+- name: 'CONFIG | Ensure uwsgi user exists'
+  user:
+    name: "{{ uwsgi_user }}"
+    group: "{{ uwsgi_group }}"
+    shell: /bin/false
+    state: present
+  when: uwsgi_ensure_user_group_exists
+
 - name: 'CONFIG | Ensure log directories exist 4 uswgi'
   file:
     path: "{{ uwsgi_config_log_path }}"

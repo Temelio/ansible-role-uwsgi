@@ -16,6 +16,7 @@ uwsgi_config_available_path: "{{ _uwsgi_config_available_path }}"
 uwsgi_config_enabled_path: "{{ _uwsgi_config_enabled_path }}"
 uwsgi_user: 'www-data'
 uwsgi_group: 'root'
+uwsgi_ensure_user_group_exists: True
 uwsgi_config_log_path: "{{ _uwsgi_config_log_path }}"
 uwsgi_config_run_path: "{{ _uwsgi_config_run_path }}"
 uwsgi_apps_defaults: "{{ _uwsgi_apps_defaults }}"

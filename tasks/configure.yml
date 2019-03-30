@@ -22,7 +22,7 @@
     state: 'directory'
     owner: "{{ uwsgi_user }}"
     group: "{{ uwsgi_group }}"
-    mode: '2770'
+    mode: '0775'
   when: 'not uwsgi_install_emperor'
 
 - name: 'CONFIG | Ensure log directories exist 4 uwsgi-emperor'
@@ -31,7 +31,7 @@
     state: 'directory'
     owner: "{{ uwsgi_emperor_user }}"
     group: "{{ uwsgi_emperor_group }}"
-    mode: '2770'
+    mode: '0775'
   when: 'uwsgi_install_emperor'
 
 - name: 'CONFIG | Create app configuration files'

@@ -69,5 +69,7 @@ uwsgi_systemd:
         Type: 'notify'
         StandardError: 'syslog'
         NotifyAccess: 'all'
+        User: 'root'
+        Group: 'root'
       Install:
         WantedBy: 'multi-user.target'

@@ -21,6 +21,7 @@
 - name: 'INIT | VARIABLES | Check if OS release vars file exists'
   become: False
   stat:
+    # yamllint disable-line rule:line-length
     path: "{{ role_path }}/vars/os_distribution/{{ ansible_distribution | lower }}/{{ ansible_distribution_release | lower }}.yml"
   register: 'uwsgi_check_os_release_vars'
   delegate_to: '127.0.0.1'
@@ -37,5 +38,6 @@
 
 
 - name: 'INIT | VARIABLES | Load OS release vars file'
+  # yamllint disable-line rule:line-length
   include_vars: "{{ role_path }}/vars/os_distribution/{{ ansible_distribution | lower }}/{{ ansible_distribution_release | lower }}.yml"
   when: "uwsgi_check_os_release_vars.stat.exists"

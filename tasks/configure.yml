@@ -95,7 +95,7 @@
 - name: 'CONFIG | Activate needed applications'
   file:
     src: "{{ item.dest_available }}/{{ item.name }}.yml"
-    dest: "{{ item.dest_enabled }}/{{ item.name }}.yml"
+    dest: "{{ item.dest_enabled }}/{{ item.name }}.yml"
     state: 'link'
   notify: 'HANDLER | Restart uwsgi'
   with_items: "{{ uwsgi_apps_defaults }}"

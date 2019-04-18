@@ -1,10 +1,12 @@
 # uwsgi
 
+[![License](https://img.shields.io/badge/license-MIT%20License-brightgreen.svg)](https://opensource.org/licenses/MIT)
 [![Build Status](https://img.shields.io/travis/Temelio/ansible-role-uwsgi/master.svg?label=travis_master)](https://travis-ci.org/Temelio/ansible-role-uwsgi)
 [![Build Status](https://img.shields.io/travis/Temelio/ansible-role-uwsgi/develop.svg?label=travis_develop)](https://travis-ci.org/Temelio/ansible-role-uwsgi)
 [![Updates](https://pyup.io/repos/github/Temelio/ansible-role-uwsgi/shield.svg)](https://pyup.io/repos/github/Temelio/ansible-role-uwsgi/)
 [![Python 3](https://pyup.io/repos/github/Temelio/ansible-role-uwsgi/python-3-shield.svg)](https://pyup.io/repos/github/Temelio/ansible-role-uwsgi/)
-[![Ansible Role](https://img.shields.io/ansible/role/12481.svg)](https://galaxy.ansible.com/Temelio/uwsgi/)
+[![Ansible Role](https://img.shields.io/ansible/role/37790.svg)](https://galaxy.ansible.com/Temelio/uwsgi/)
+[![GitHub tag](https://img.shields.io/github/tag/temelio/ansible-role-uwsgi.svg)](https://github.com/Temelio/ansible-role-uwsgi/tags)
 
 Install uWSGI package.
 
@@ -21,7 +23,6 @@ Local and Travis tests run tests on Docker by default.
 See molecule documentation to use other backend.
 
 Currently, tests are done on:
-- Debian Jessie
 - Debian Stretch
 - Ubuntu Xenial
 - Ubuntu Bionic

@@ -1,6 +1,7 @@
 ---
 
 galaxy_info:
+  role_name: 'uwsgi'
   author: 'A Chaussier, L Machetel'
   description: 'Ansible role to manage uwsgi installation and configuration'
   company: 'Temelio (https://temelio.com)'
@@ -10,7 +11,6 @@ galaxy_info:
   platforms:
     - name: 'Debian'
       versions:
-        - 'Jessie'
         - 'Stretch'
     - name: 'Ubuntu'
       versions:

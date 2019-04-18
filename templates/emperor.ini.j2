@@ -3,7 +3,7 @@
 {% for section in item.config.keys() %}
 
 [{{ section }}]
-{% for key, value in item.config[section].iteritems() %}
-{{ key }}={{ value }}
+{% for item in item.config[section] | dict2items %}
+{{ item.key }}={{ item.value }}
 {% endfor %}
 {% endfor %}

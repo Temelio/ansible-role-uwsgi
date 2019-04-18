@@ -2,13 +2,27 @@
 
 # All tasks about uwsgi configuration
 
+- name: 'CONFIG | Ensure uwsgi group exists'
+  group:
+    name: "{{ uwsgi_group }}"
+    state: present
+  when: uwsgi_ensure_user_group_exists
+
+- name: 'CONFIG | Ensure uwsgi user exists'
+  user:
+    name: "{{ uwsgi_user }}"
+    group: "{{ uwsgi_group }}"
+    shell: /bin/false
+    state: present
+  when: uwsgi_ensure_user_group_exists
+
 - name: 'CONFIG | Ensure log directories exist 4 uswgi'
   file:
     path: "{{ uwsgi_config_log_path }}"
     state: 'directory'
     owner: "{{ uwsgi_user }}"
     group: "{{ uwsgi_group }}"
-    mode: '2770'
+    mode: '0775'
   when: 'not uwsgi_install_emperor'
 
 - name: 'CONFIG | Ensure log directories exist 4 uwsgi-emperor'
@@ -17,7 +31,7 @@
     state: 'directory'
     owner: "{{ uwsgi_emperor_user }}"
     group: "{{ uwsgi_emperor_group }}"
-    mode: '2770'
+    mode: '0775'
   when: 'uwsgi_install_emperor'
 
 - name: 'CONFIG | Create app configuration files'

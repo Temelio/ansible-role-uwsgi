@@ -5,7 +5,7 @@
 [![Build Status](https://img.shields.io/travis/Temelio/ansible-role-uwsgi/develop.svg?label=travis_develop)](https://travis-ci.org/Temelio/ansible-role-uwsgi)
 [![Updates](https://pyup.io/repos/github/Temelio/ansible-role-uwsgi/shield.svg)](https://pyup.io/repos/github/Temelio/ansible-role-uwsgi/)
 [![Python 3](https://pyup.io/repos/github/Temelio/ansible-role-uwsgi/python-3-shield.svg)](https://pyup.io/repos/github/Temelio/ansible-role-uwsgi/)
-[![Ansible Role](https://img.shields.io/ansible/role/37790.svg)](https://galaxy.ansible.com/Temelio/uwsgi/)
+[![Ansible Role](https://img.shields.io/ansible/role/39691.svg)](https://galaxy.ansible.com/Temelio/uwsgi/)
 [![GitHub tag](https://img.shields.io/github/tag/temelio/ansible-role-uwsgi.svg)](https://github.com/Temelio/ansible-role-uwsgi/tags)
 
 Install uWSGI package.
@@ -66,12 +66,15 @@ uwsgi_emperor_service_name: 'uwsgi-emperor'
 uwsgi_is_systemd_managed: False
 
 # Config vars
-uwsgi_emperor_vassals_config_path: "{{ _uwsgi_emperor_vassals_config_path }}"
 uwsgi_config_available_path: "{{ _uwsgi_config_available_path }}"
 uwsgi_config_enabled_path: "{{ _uwsgi_config_enabled_path }}"
+uwsgi_user: 'www-data'
+uwsgi_group: 'root'
+uwsgi_ensure_user_group_exists: True
 uwsgi_config_log_path: "{{ _uwsgi_config_log_path }}"
 uwsgi_config_run_path: "{{ _uwsgi_config_run_path }}"
 uwsgi_apps_defaults: "{{ _uwsgi_apps_defaults }}"
+uwsgi_emperor_vassals_config_path: "{{ _uwsgi_emperor_vassals_config_path }}"
 uwsgi_emperor_vassals_path: '/etc/uwsgi-emperor/vassals'
 uwsgi_emperor_user: 'nobody'
 uwsgi_emperor_group: 'users'
@@ -120,6 +123,8 @@ uwsgi_systemd:
         Type: 'notify'
         StandardError: 'syslog'
         NotifyAccess: 'all'
+        User: 'root'
+        Group: 'root'
       Install:
         WantedBy: 'multi-user.target'
 
@@ -134,24 +139,37 @@ _uwsgi_packages:
   - name: 'uwsgi-plugin-python'
   - name: 'uwsgi-plugin-python3'
 
+_uwsgi_emperor_packages:
+  - name: 'uwsgi-emperor'
+  - name: 'uwsgi-plugin-python3'
+
 # Configuration management
-_uwsgi_configuration_available_path: '/etc/uwsgi/apps-available'
-_uwsgi_configuration_enabled_path: '/etc/uwsgi/apps-enabled'
-_uwsgi_configuration_log_path: '/var/log/uwsgi'
-_uwsgi_configuration_run_path: '/var/run/uwsgi'
+_uwsgi_emperor_vassals_config_path: '/etc/uwsgi-emperor/vassals'
+_uwsgi_config_available_path: '/etc/uwsgi/apps-available'
+_uwsgi_config_enabled_path: '/etc/uwsgi/apps-enabled'
+_uwsgi_config_log_path: '/var/log/uwsgi'
 _uwsgi_apps_defaults:
-  uwsgi:
-    autoload: true
-    master: true
-    workers: 2
-    no-orphans: true
-    pidfile: "{{ uwsgi_configuration_run_path ~ '/%(deb-confnamespace)/%(deb-confname)/pid' }}"
-    socket: "{{ uwsgi_configuration_run_path ~ '/%(deb-confnamespace)/%(deb-confname)/socket' }}"
-    logto: "{{ uwsgi_configuration_log_path ~ '/%(deb-confnamespace)/%(debconfname).log' }}"
-    chmod-socket: 660
-    log-date: true
-    uid: www-data
-    gid: www-data
+  - name: 'default'
+    src: "{{ role_path }}/templates/app.yaml.j2"
+    dest_available: "{{ _uwsgi_config_available_path }}"
+    dest_enabled: "{{ _uwsgi_config_enabled_path }}"
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+    enabled: True
+    config:
+      uwsgi:
+        autoload: true
+        master: true
+        workers: 2
+        no-orphans: true
+        pidfile: "/run/uwsgi/%(deb-confnamespace)/%(deb-confname)/pid"
+        socket: "/run/uwsgi/%(deb-confnamespace)/%(deb-confname)/socket"
+        logto: "{{ _uwsgi_config_log_path }}/%n.log"
+        chmod-socket: 660
+        log-date: true
+        uid: "{{ uwsgi_user }}"
+        gid: "{{ uwsgi_group }}"
 ```
 
 ## Dependencies
@@ -172,6 +190,6 @@ MIT
 
 ## Author Information
 
-Alexandre Chaussier (for infOpen company)
-Lise Machetel (for Temelio company)
+A Chaussier (for infOpen company)
+L Machetel (for Temelio company)
 - https://temelio.com
